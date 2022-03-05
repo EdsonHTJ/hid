@@ -527,6 +527,7 @@ struct hid_device_info  HID_API_EXPORT *hid_enumerate(unsigned short vendor_id, 
 
 	/* give the IOHIDManager a chance to update itself */
 	process_pending_events();
+	printf("%f\n", NSAppKitVersionNumber);
 
 	/* Get a list of the Devices */
 	CFMutableDictionaryRef matching = NULL;
