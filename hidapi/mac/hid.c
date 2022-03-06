@@ -347,14 +347,15 @@ int HID_API_EXPORT hid_init(void)
 	if (!hid_mgr) {
 		is_macos_10_10_or_greater = (NSAppKitVersionNumber >= 1343); /* NSAppKitVersionNumber10_10 */
 		short isMacos12Available = 0;
+		short isAvailable = 0;
 		if (__builtin_available(macOS 12, *)) {
-			isMacos12Available = 1;
+			isAvailable = 1;
 		}
-		
-		#if isMacos12Available
-			io_port = kIOMainPortDefault;
-		#else
-			io_port = kIOMasterPortDefault;
+
+		#if isAvailable 
+			#define IO_PORT kIOMainPortDefault
+		#else 
+			#define IO_PORT kIOMasterPortDefault
 		#endif
 
 		return init_hid_manager();
@@ -805,12 +806,12 @@ static io_registry_entry_t hid_open_service_registry_from_path(const char *path)
 		char *endptr;
 		uint64_t entry_id = strtoull(path + 10, &endptr, 10);
 		if (*endptr == '\0') {
-			return IOServiceGetMatchingService(io_port, IORegistryEntryIDMatching(entry_id));
+			return IOServiceGetMatchingService(IO_PORT, IORegistryEntryIDMatching(entry_id));
 		}
 	}
 	else {
 		/* Fallback to older format of the path */
-		return IORegistryEntryFromPath(io_port, path);
+		return IORegistryEntryFromPath(IO_PORT, path);
 	}
 
 	return MACH_PORT_NULL;
