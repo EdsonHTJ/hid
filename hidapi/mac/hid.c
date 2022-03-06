@@ -346,7 +346,12 @@ int HID_API_EXPORT hid_init(void)
 {
 	if (!hid_mgr) {
 		is_macos_10_10_or_greater = (NSAppKitVersionNumber >= 1343); /* NSAppKitVersionNumber10_10 */
-		#if __builtin_available(macOS 12, *))
+		short isMacos12Available = 0;
+		if (__builtin_available(macOS 12, *)) {
+			isMacos12Available = 1;
+		}
+		
+		#if isMacos12Available
 			io_port = kIOMainPortDefault;
 		#else
 			io_port = kIOMasterPortDefault;
