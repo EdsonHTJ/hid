@@ -195,7 +195,6 @@ static	int is_macos_10_10_or_greater = 0;
 mach_port_t io_port;
 
 
-
 #if 0
 static void register_error(hid_device *dev, const char *op)
 {
@@ -347,11 +346,11 @@ int HID_API_EXPORT hid_init(void)
 {
 	if (!hid_mgr) {
 		is_macos_10_10_or_greater = (NSAppKitVersionNumber >= 1343); /* NSAppKitVersionNumber10_10 */
-		if (__builtin_available(macOS 12, *)) {
+		#if __builtin_available(macOS 12, *))
 			io_port = kIOMainPortDefault;
-		}else {
+		#else
 			io_port = kIOMasterPortDefault;
-		}
+		#endif
 
 		return init_hid_manager();
 	}
