@@ -192,7 +192,7 @@ static struct hid_api_version api_version = {
 
 static	IOHIDManagerRef hid_mgr = 0x0;
 static	int is_macos_10_10_or_greater = 0;
-static	int is_macos_12_00_or_greater = 0;
+mach_port_t io_port;
 
 
 
@@ -347,12 +347,11 @@ int HID_API_EXPORT hid_init(void)
 {
 	if (!hid_mgr) {
 		is_macos_10_10_or_greater = (NSAppKitVersionNumber >= 1343); /* NSAppKitVersionNumber10_10 */
-		is_macos_12_00_or_greater = (NSAppKitVersionNumber >= 2109);
-		#if is_macos_12_00_or_greater
-			#define KIO_PORT_DEFAULT kIOMainPortDefault
-		#else
-			#define KIO_PORT_DEFAULT kIOMasterPortDefault
-		#endif
+		if (__builtin_available(macOS 12, *)) {
+			io_port = kIOMainPortDefault;
+		}else {
+			io_port = kIOMasterPortDefault;
+		}
 
 		return init_hid_manager();
 	}
@@ -527,7 +526,7 @@ struct hid_device_info  HID_API_EXPORT *hid_enumerate(unsigned short vendor_id, 
 
 	/* give the IOHIDManager a chance to update itself */
 	process_pending_events();
-	printf("%f\n", NSAppKitVersionNumber);
+	//printf("%f\n", NSAppKitVersionNumber);
 
 	/* Get a list of the Devices */
 	CFMutableDictionaryRef matching = NULL;
@@ -802,12 +801,12 @@ static io_registry_entry_t hid_open_service_registry_from_path(const char *path)
 		char *endptr;
 		uint64_t entry_id = strtoull(path + 10, &endptr, 10);
 		if (*endptr == '\0') {
-			return IOServiceGetMatchingService(KIO_PORT_DEFAULT, IORegistryEntryIDMatching(entry_id));
+			return IOServiceGetMatchingService(io_port, IORegistryEntryIDMatching(entry_id));
 		}
 	}
 	else {
 		/* Fallback to older format of the path */
-		return IORegistryEntryFromPath(KIO_PORT_DEFAULT, path);
+		return IORegistryEntryFromPath(io_port, path);
 	}
 
 	return MACH_PORT_NULL;
